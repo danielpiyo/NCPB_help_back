@@ -39,9 +39,14 @@ router.post('/signin', function (req, res) {
         if (auth) {
 
             user = {
-                username: signInconfig.username
+                username: signInconfig.username,
+                code: 101
             }
             res.status(200).json({
+                user : {
+                    username: signInconfig.username,
+                    code: 101
+                },
                 token: jwt.sign(user, config.jwtSecretKey, {
                     expiresIn: 60 * 60 * 24
                 }) //EXPIRES IN ONE DAY,
@@ -952,6 +957,145 @@ router.post('/requestAdminReport', function (req, res) {
     });
 });
 
+// get categories
+router.post('/categories', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "SELECT * from categories order by cat_id";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Records found",
+                    detailed_message: error ? error.message : "Sorry there are no Records Found set."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`Category pull released by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+// get Departments
+router.post('/departments', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "SELECT * from departments order by dep_id";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Records found",
+                    detailed_message: error ? error.message : "Sorry there are no Records Found set."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`Department pull released by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+// get regions
+router.post('/regions', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "SELECT * from regions order by rig_id";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Records found",
+                    detailed_message: error ? error.message : "Sorry there are no Records Found set."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`Region pull released by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+// get deport
+router.post('/deports', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "SELECT * from deports where depo_rig=? order by depo_id";
+        connAttrs.query(sql, req.body.region, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Records found",
+                    detailed_message: error ? error.message : "Sorry there are no Records Found set."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`Deports pull released by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
 
 
 module.exports = router;

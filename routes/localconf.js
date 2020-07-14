@@ -1,4 +1,4 @@
 module.exports = {
-    url: 'ldap://SERVERBETA.cereals',
+    url: 'ldap://SERVERALPHA.cereals',
     baseDN: 'dc=cereals'
 };
