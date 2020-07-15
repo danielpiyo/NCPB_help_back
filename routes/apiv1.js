@@ -184,6 +184,7 @@ router.post('/register', function post(req, res, next) { //
                             password: user.hashedPassword,
                             created_by: user.created_by,
                             rig_id: user.region,
+                            username: user.username,
                             depo_id: user.deport
                         }, function (error, results) {
                             if (error) {
@@ -202,6 +203,126 @@ router.post('/register', function post(req, res, next) { //
             })
         })
     })
+});
+
+// Adding new Department
+router.post('/newDepartment', function (req, res) {
+    var newDepartment = {       
+        dep_name: req.body.dep_name,
+        department_incharge: req.body.department_incharge
+    }
+    // token
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        connAttrs.query("INSERT INTO DEPARTMENTS SET ? ", {           
+            dep_name: newDepartment.dep_name,
+            department_incharge: newDepartment.department_incharge            
+        }, function (error, results) {
+            if (error) {
+                res.set('Content-Type', 'application/json');
+                res.status(500).send(JSON.stringify({
+                    status: 500,
+                    message: "Error Posting your Request",
+                    detailed_message: error.message
+                }));
+            } else {
+                console.log(`${decoded.username}, succesfully posted New Department on ${new Date()}`);
+                return res.contentType('application/json').status(201).send(JSON.stringify(results));
+            }
+        });
+
+    });
+});
+
+// Adding new category
+router.post('/newCategory', function (req, res) {
+    var newCategory = {       
+        cat_name: req.body.cat_name,
+        details: req.body.details
+    }
+    // token
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        connAttrs.query("INSERT INTO CATEGORIES SET ? ", {           
+            cat_name: newCategory.cat_name,
+            details: newCategory.details            
+        }, function (error, results) {
+            if (error) {
+                res.set('Content-Type', 'application/json');
+                res.status(500).send(JSON.stringify({
+                    status: 500,
+                    message: "Error Posting your Request",
+                    detailed_message: error.message
+                }));
+            } else {
+                console.log(`${decoded.username}, succesfully posted New Categpory on ${new Date()}`);
+                return res.contentType('application/json').status(201).send(JSON.stringify(results));
+            }
+        });
+
+    });
+});
+
+// Adding new Region
+router.post('/newRegion', function (req, res) {
+    var newRegion = {       
+        rig_name: req.body.rig_name,
+        rig_incharge: req.body.rig_incharge
+    }
+    // token
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        connAttrs.query("INSERT INTO REGIONS SET ? ", {           
+            rig_name: newRegion.rig_name,
+            rig_incharge: newRegion.rig_incharge            
+        }, function (error, results) {
+            if (error) {
+                res.set('Content-Type', 'application/json');
+                res.status(500).send(JSON.stringify({
+                    status: 500,
+                    message: "Error Posting your Request",
+                    detailed_message: error.message
+                }));
+            } else {
+                console.log(`${decoded.username}, succesfully posted New REGION on ${new Date()}`);
+                return res.contentType('application/json').status(201).send(JSON.stringify(results));
+            }
+        });
+
+    });
 });
 
 
@@ -287,6 +408,42 @@ router.post('/getIcto', function (req, res) {
         });
     });
 });
+
+// Get all ICTO USERS
+router.post('/users', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "SELECT * FROM vw_icto_users order by id desc";
+        connAttrs.query(sql, decoded.region, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Records found",
+                    detailed_message: error ? error.message : "Sorry there are no Records Found set."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`ICTO pull released by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
 
 
 // assign request
@@ -518,7 +675,7 @@ router.post('/openRequests', function (req, res) {
                 message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
             });
         }
-        var sql = "SELECT * FROM requests where req_status='Open'";
+        var sql = "SELECT * FROM VW_ALL_REQUEST where status='Open'";
         connAttrs.query(sql, function (error, results) {
             if (error || results.length < 1) {
                 res.set('Content-Type', 'application/json');
@@ -553,7 +710,7 @@ router.post('/closedRequests', function (req, res) {
                 message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
             });
         }
-        var sql = "SELECT * FROM requests where req_status='Closed'";
+        var sql = "SELECT * FROM VW_ALL_REQUEST where status='Closed'";
         connAttrs.query(sql, function (error, results) {
             if (error || results.length < 1) {
                 res.set('Content-Type', 'application/json');
@@ -589,7 +746,7 @@ router.post('/assignedRequests', function (req, res) {
                 message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
             });
         }
-        var sql = "SELECT * FROM requests where req_status='Assigned'";
+        var sql = "SELECT * FROM VW_ALL_REQUEST where status='Assigned'";
         connAttrs.query(sql, function (error, results) {
             if (error || results.length < 1) {
                 res.set('Content-Type', 'application/json');
@@ -624,7 +781,7 @@ router.post('/escalatedRequests', function (req, res) {
                 message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
             });
         }
-        var sql = "SELECT * FROM requests where req_status='Escalated'";
+        var sql = "SELECT * FROM VW_ALL_REQUEST where status='Escalated'";
         connAttrs.query(sql, function (error, results) {
             if (error || results.length < 1) {
                 res.set('Content-Type', 'application/json');
@@ -643,7 +800,7 @@ router.post('/escalatedRequests', function (req, res) {
     });
 });
 
-// pulling Escalated request
+// pulling Deleted request
 router.post('/deletedRequests', function (req, res) {
 
     var token = req.body.token;
@@ -659,7 +816,7 @@ router.post('/deletedRequests', function (req, res) {
                 message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
             });
         }
-        var sql = "SELECT * FROM requests where req_status='Deleted'";
+        var sql = "SELECT * FROM VW_ALL_REQUEST where status='Deleted'";
         connAttrs.query(sql, function (error, results) {
             if (error || results.length < 1) {
                 res.set('Content-Type', 'application/json');
@@ -694,7 +851,7 @@ router.post('/allRequests', function (req, res) {
                 message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
             });
         }
-        var sql = "SELECT * FROM requests where req_status !='Deleted'";
+        var sql = "SELECT * FROM VW_ALL_REQUEST where status !='Deleted'";
         connAttrs.query(sql, function (error, results) {
             if (error || results.length < 1) {
                 res.set('Content-Type', 'application/json');
@@ -729,7 +886,7 @@ router.post('/myRequests', function (req, res) {
                 message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
             });
         }
-        var sql = "SELECT * FROM requests where user_name=? AND req_deleted_yn ='N'";
+        var sql = "SELECT * FROM VW_ALL_REQUEST where requestUsername=? AND deleted ='N'";
         connAttrs.query(sql, decoded.username, function (error, results) {
             if (error || results.length < 1) {
                 res.set('Content-Type', 'application/json');
