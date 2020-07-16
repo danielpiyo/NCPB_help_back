@@ -466,9 +466,9 @@ router.post('/assignRequest', function (req, res) {
                 req_assigned_yn: 'Y',
                 req_status: 'Assigned',
                 req_assiged_by: decoded.username,
-                req_assigned_to: req.body.icto_name,
+                req_assigned_to: req.body.username,
                 req_assigned_at: new Date(),
-                req_id: req_id
+                req_id: req.body.req_id
             }
 
             if (!requstsToAssign) {
@@ -574,7 +574,7 @@ router.post('/closeRequest', function (req, res) {
                 req_status: 'Closed',
                 req_closed_by: decoded.username,
                 req_closed_at: new Date(),
-                req_id: req_id
+                req_id: req.body.req_id
             }
 
             if (!requstsToClose) {
@@ -1250,6 +1250,278 @@ router.post('/deports', function (req, res) {
 
             res.contentType('application/json').status(200).send(JSON.stringify(results));
             console.log(`Deports pull released by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+/*  **************************************************************************************
+************************************** Pulling category report
+*************************************
+*/
+router.post('/categoryReport', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "SELECT * FROM vw_category_req";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No report found",
+                    detailed_message: error ? error.message : "Sorry there are no reports."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`All category request selection Released succesfullly by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+/*  **************************************************************************************
+************************************** Pulling Monthly category report
+*************************************
+*/
+router.post('/categoryMonthReport', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "SELECT * FROM vw_category_req_month";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No report found",
+                    detailed_message: error ? error.message : "Sorry there are no reports."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`All category request selection Released succesfullly by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+
+/*  **************************************************************************************
+************************************** Total Reuests
+*************************************
+*/
+router.post('/totalRequests', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "select count(*) total_requests FROM requests WHERE DATE_FORMAT(req_time, '%Y-%m-%d') = curdate()";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Requests found",
+                    detailed_message: error ? error.message : "Sorry there are no Requests."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`All Total Daily Request request selection Released succesfullly by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+/*  **************************************************************************************
+************************************** Open Reuests
+*************************************
+*/
+router.post('/totalOpen', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "select count(*) total_open FROM requests WHERE req_status='Open' and DATE_FORMAT(req_time, '%Y-%m-%d') = curdate()";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Open Request found",
+                    detailed_message: error ? error.message : "Sorry there are no Open Request."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`All Open Daily Request request selection Released succesfullly by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+
+/*  **************************************************************************************
+************************************** Assigned Reuests
+*************************************
+*/
+router.post('/totalAssigned', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "select count(*) total_assigned FROM requests WHERE req_status='Assigned' and DATE_FORMAT(req_assigned_at, '%Y-%m-%d') = curdate()";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Assigned Request found",
+                    detailed_message: error ? error.message : "Sorry there are no Assigned Request."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`All Assigned Daily Request request selection Released succesfullly by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+
+
+/*  **************************************************************************************
+************************************** Escalated Reuests
+*************************************
+*/
+router.post('/totalEscalated', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "select count(*) total_escalated FROM requests WHERE req_status='Escalated' and DATE_FORMAT(req_escalated_at, '%Y-%m-%d') = curdate()";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Escalated Request found",
+                    detailed_message: error ? error.message : "Sorry there are no Escalated Request."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`All Escalated Daily Request request selection Released succesfullly by ${decoded.sub} on ${new Date()}`);
+        });
+    });
+});
+
+
+
+/*  **************************************************************************************
+************************************** Closed Reuests
+*************************************
+*/
+router.post('/totalClosed', function (req, res) {
+
+    var token = req.body.token;
+    if (!token) return res.status(401).send({
+        auth: false,
+        message: 'No token provided.'
+    });
+
+    jwt.verify(token, config.jwtSecretKey, function (err, decoded) {
+        if (err) {
+            return res.status(500).send({
+                auth: false,
+                message: 'Sorry Your Token is not genuine. Failed to authenticate token.'
+            });
+        }
+        var sql = "select count(*) total_closed FROM requests WHERE req_status='Closed' and DATE_FORMAT(req_closed_at, '%Y-%m-%d') = curdate()";
+        connAttrs.query(sql, function (error, results) {
+            if (error || results.length < 1) {
+                res.set('Content-Type', 'application/json');
+                var status = error ? 500 : 404;
+                res.status(status).send(JSON.stringify({
+                    status: status,
+                    message: error ? "Error getting the server" : "No Closed Request found",
+                    detailed_message: error ? error.message : "Sorry there are no Closed Request."
+                }));
+                return (error);
+            }
+
+            res.contentType('application/json').status(200).send(JSON.stringify(results));
+            console.log(`All Closed Daily Request request selection Released succesfullly by ${decoded.sub} on ${new Date()}`);
         });
     });
 });
